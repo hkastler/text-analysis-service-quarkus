@@ -3,11 +3,15 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hkstlr</groupId>
   <artifactId>text-analysis-service-quarkus</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>${revision}${sha1}${changelist}</version>
   <properties>
+    <revision>1.0</revision>
+    <sha1 />
+    <changelist>-SNAPSHOT</changelist>
+    <tag>${revision}${sha1}${changelist}</tag>
     <surefire-plugin.version>2.22.0</surefire-plugin.version>
     <quarkus.version>0.12.0</quarkus.version>
-    <version.microprofile>2.1</version.microprofile>
+    <microprofile.version>2.1</microprofile.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -28,7 +32,7 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy</artifactId>
     </dependency>
-     <!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-jackson-provider -->
+    <!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-jackson-provider -->
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-jackson-provider</artifactId>
@@ -37,14 +41,14 @@
     <dependency>
       <groupId>org.eclipse.microprofile</groupId>
       <artifactId>microprofile</artifactId>
-      <version>${version.microprofile}</version>
+      <version>${microprofile.version}</version>
       <type>pom</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.hkstlr</groupId>
       <artifactId>text-analysis-twitter</artifactId>
-      <version>1.0.5</version>
+      <version>1.0.5-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
     <dependency>
@@ -59,6 +63,7 @@
     </dependency>
   </dependencies>
   <build>
+    <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
         <groupId>io.quarkus</groupId>
@@ -81,9 +86,56 @@
           </systemProperties>
         </configuration>
       </plugin>
+      <!-- flatten the modules pom to fix version for maven/nexus -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.1.0</version>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+  <scm>
+    <connection>scm:git:https://github.com/hkastler/text-analysis-service-quarkus.git</connection>
+    <url>https://github.com/hkastler/text-analysis-service-quarkus</url>
+  </scm>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>nexus-snapshot</id>
+      <url>http://nexus:8081/repository/maven-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
   <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+        <changelist></changelist>
+      </properties>
+      <distributionManagement>
+        <repository>
+          <id>nexus-release</id>
+          <url>http://nexus:8081/repository/maven-releases/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
     <profile>
       <id>native</id>
       <activation>
